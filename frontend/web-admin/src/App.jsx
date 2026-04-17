@@ -1,121 +1,134 @@
-import { useState, useEffect } from 'react'
-import { Layout, Menu, Card, Row, Col, Statistic, message } from 'antd'
+import { useState } from 'react'
+import { Layout, Menu, Dropdown, Avatar, Badge } from 'antd'
 import {
   DashboardOutlined,
   UserOutlined,
   ShoppingOutlined,
   ShoppingCartOutlined,
   FileTextOutlined,
+  LogoutOutlined,
+  BellOutlined,
+  SettingOutlined,
+  KeyOutlined,
 } from '@ant-design/icons'
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import './App.css'
+import PrivateRoute from './components/PrivateRoute'
+import DashboardPage from './pages/DashboardPage'
+import UserManagementPage from './pages/UserManagementPage'
+import ProductManagementPage from './pages/ProductManagementPage'
+import OrderManagementPage from './pages/OrderManagementPage'
+import LoginPage from './pages/LoginPage'
+import PermissionManagementPage from './pages/PermissionManagementPage'
+import { useAuth } from './contexts/AuthContext'
 
 const { Header, Sider, Content } = Layout
 
 function App() {
-  const [health, setHealth] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then(res => res.json())
-      .then(data => {
-        setHealth(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error('Failed to fetch health:', err)
-        message.error('Cannot connect to backend API')
-        setLoading(false)
-      })
-  }, [])
+  const [collapsed, setCollapsed] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { logout, user } = useAuth()
 
   const menuItems = [
-    { key: 'dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
-    { key: 'users', icon: <UserOutlined />, label: 'User Management' },
-    { key: 'products', icon: <ShoppingOutlined />, label: 'SKU Management' },
-    { key: 'cart', icon: <ShoppingCartOutlined />, label: 'Shopping Cart' },
-    { key: 'orders', icon: <FileTextOutlined />, label: 'Order Management' },
+    { key: '/dashboard', icon: <DashboardOutlined />, label: 'Dashboard' },
+    { key: '/users', icon: <UserOutlined />, label: 'User Management' },
+    { key: '/products', icon: <ShoppingOutlined />, label: 'SKU Management' },
+    { key: '/orders', icon: <FileTextOutlined />, label: 'Order Management' },
+    { key: '/permissions', icon: <KeyOutlined />, label: 'Permission Management' },
   ]
+
+  const handleMenuClick = ({ key }) => {
+    navigate(key)
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
+  const userMenuItems = [
+    { key: 'profile', icon: <UserOutlined />, label: 'Profile' },
+    { key: 'settings', icon: <SettingOutlined />, label: 'Settings' },
+    { type: 'divider' },
+    { key: 'logout', icon: <LogoutOutlined />, label: 'Logout', onClick: handleLogout },
+  ]
+
+  const selectedKey = location.pathname
+
+  // If user is not authenticated and not on login page, redirect to login
+  if (!user && location.pathname !== '/login') {
+    return <Navigate to="/login" replace />
+  }
+
+  // If user is authenticated and on login page, redirect to dashboard
+  if (user && location.pathname === '/login') {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  // Login page layout (no sidebar/header)
+  if (location.pathname === '/login') {
+    return <LoginPage />
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider theme="dark">
+      <Sider 
+        theme="dark" 
+        collapsible 
+        collapsed={collapsed} 
+        onCollapse={setCollapsed}
+        width={220}
+      >
         <div style={{ padding: '16px', color: 'white', textAlign: 'center' }}>
-          <h2 style={{ color: 'white', margin: 0 }}>XF Shopee</h2>
-          <p style={{ color: '#aaa', fontSize: '12px' }}>Admin Dashboard</p>
+          <h2 style={{ color: 'white', margin: 0, fontSize: collapsed ? '16px' : '20px' }}>
+            {collapsed ? 'XF' : 'XF Shopee'}
+          </h2>
+          {!collapsed && <p style={{ color: '#aaa', fontSize: '12px' }}>Admin Dashboard</p>}
         </div>
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={['dashboard']} items={menuItems} />
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[selectedKey]}
+          items={menuItems}
+          onClick={handleMenuClick}
+        />
       </Sider>
       <Layout>
-        <Header style={{ background: '#fff', padding: '0 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-          <h2 style={{ margin: 0 }}>Dashboard Overview</h2>
+        <Header style={{ 
+          background: '#fff', 
+          padding: '0 24px', 
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <h2 style={{ margin: 0 }}>
+            {menuItems.find(item => item.key === selectedKey)?.label || 'Dashboard'}
+          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <Badge count={5}>
+              <BellOutlined style={{ fontSize: '18px', cursor: 'pointer' }} />
+            </Badge>
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <Avatar icon={<UserOutlined />} />
+                <span>{user?.username || 'Admin'}</span>
+              </div>
+            </Dropdown>
+          </div>
         </Header>
         <Content style={{ margin: '24px', overflow: 'initial' }}>
-          <Row gutter={[24, 24]}>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic title="Total Orders" value={1254} prefix={<FileTextOutlined />} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic title="Total Revenue" value={56890} prefix="$" />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic title="Active Users" value={342} prefix={<UserOutlined />} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <Card>
-                <Statistic title="SKU Count" value={1567} prefix={<ShoppingOutlined />} />
-              </Card>
-            </Col>
-          </Row>
-          
-          <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
-            <Col span={24}>
-              <Card title="System Health" loading={loading}>
-                {health && (
-                  <div>
-                    <p><strong>Status:</strong> <span style={{ color: 'green' }}>{health.status}</span></p>
-                    <p><strong>Service:</strong> {health.service}</p>
-                    <p><strong>Version:</strong> {health.version}</p>
-                    <p><strong>Timestamp:</strong> {new Date(health.timestamp).toLocaleString()}</p>
-                  </div>
-                )}
-                {!health && !loading && <p style={{ color: 'red' }}>Unable to connect to backend</p>}
-              </Card>
-            </Col>
-          </Row>
-
-          <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
-            <Col span={24}>
-              <Card title="Quick Actions">
-                <Row gutter={[16, 16]}>
-                  <Col span={8}>
-                    <Card size="small" hoverable onClick={() => message.info('Navigate to User Management')}>
-                      <UserOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
-                      <p>Manage Users</p>
-                    </Card>
-                  </Col>
-                  <Col span={8}>
-                    <Card size="small" hoverable onClick={() => message.info('Navigate to SKU Management')}>
-                      <ShoppingOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
-                      <p>Manage Products</p>
-                    </Card>
-                  </Col>
-                  <Col span={8}>
-                    <Card size="small" hoverable onClick={() => message.info('Navigate to Order Management')}>
-                      <FileTextOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />
-                      <p>Process Orders</p>
-                    </Card>
-                  </Col>
-                </Row>
-              </Card>
-            </Col>
-          </Row>
+          <PrivateRoute requirePermissions={[]} requireRoles={[]}>
+            <Routes>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/users" element={<UserManagementPage />} />
+              <Route path="/products" element={<ProductManagementPage />} />
+              <Route path="/orders" element={<OrderManagementPage />} />
+              <Route path="/permissions" element={<PermissionManagementPage />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </PrivateRoute>
         </Content>
       </Layout>
     </Layout>

@@ -1,0 +1,230 @@
+import axios from 'axios';
+
+// 创建axios实例
+const api = axios.create({
+  baseURL: '/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// 请求拦截器 - 添加token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// 响应拦截器 - 处理错误
+api.interceptors.response.use(
+  (response) => response.data,
+  (error) => {
+    if (error.response?.status === 401) {
+      // 未授权，清除token并跳转到登录页
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error.response?.data || error.message);
+  }
+);
+
+// 健康检查API
+export const healthApi = {
+  check: () => api.get('/health'),
+};
+
+// 用户认证API
+export const authApi = {
+  login: (username, password) => 
+    api.post('/v1/users/login', { username, password }),
+  
+  register: (userData) => 
+    api.post('/v1/users/register', userData),
+  
+  getCurrentUser: () => 
+    api.get('/v1/users/me'),
+  
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  },
+  
+  getPermissions: () =>
+    api.get('/v1/auth/permissions'),
+  
+  checkPermissions: (permissions) =>
+    api.post('/v1/auth/check', { permissions }),
+};
+
+// 用户管理API
+export const userApi = {
+  getAll: (params) => 
+    api.get('/v1/users', { params }),
+  
+  getById: (id) => 
+    api.get(`/v1/users/${id}`),
+  
+  create: (userData) => 
+    api.post('/v1/users', userData),
+  
+  update: (id, userData) => 
+    api.put(`/v1/users/${id}`, userData),
+  
+  delete: (id) => 
+    api.delete(`/v1/users/${id}`),
+  
+  changePassword: (id, oldPassword, newPassword) =>
+    api.put(`/v1/users/${id}/password`, { oldPassword, newPassword }),
+};
+
+// 产品管理API
+export const productApi = {
+  getAll: (params) => 
+    api.get('/v1/products', { params }),
+  
+  getById: (id) => 
+    api.get(`/v1/products/${id}`),
+  
+  getBySKU: (sku) =>
+    api.get(`/v1/products/sku/${sku}`),
+  
+  create: (productData) => 
+    api.post('/v1/products', productData),
+  
+  update: (id, productData) => 
+    api.put(`/v1/products/${id}`, productData),
+  
+  delete: (id) => 
+    api.delete(`/v1/products/${id}`),
+  
+  updateStock: (id, quantity) =>
+    api.patch(`/v1/products/${id}/stock`, { quantity }),
+  
+  getLowStock: (params) =>
+    api.get('/v1/products/low-stock', { params }),
+  
+  batchUpdateStatus: (ids, status) =>
+    api.post('/v1/products/batch/status', { ids, status }),
+};
+
+// 购物车API
+export const cartApi = {
+  getCart: () => 
+    api.get('/v1/carts'),
+  
+  addItem: (productId, quantity) => 
+    api.post('/v1/carts/items', { productId, quantity }),
+  
+  updateItem: (itemId, quantity) => 
+    api.put(`/v1/carts/items/${itemId}`, { quantity }),
+  
+  removeItem: (itemId) => 
+    api.delete(`/v1/carts/items/${itemId}`),
+  
+  clearCart: () => 
+    api.delete('/v1/carts'),
+  
+  checkout: (checkoutData) => 
+    api.post('/v1/carts/checkout', checkoutData),
+  
+  mergeCart: (sessionId) =>
+    api.post('/v1/carts/merge', { sessionId }),
+};
+
+// 订单管理API
+export const orderApi = {
+  getAll: (params) => 
+    api.get('/v1/orders', { params }),
+  
+  getById: (id) => 
+    api.get(`/v1/orders/${id}`),
+  
+  getByOrderNumber: (orderNumber) =>
+    api.get(`/v1/orders/order-number/${orderNumber}`),
+  
+  create: (orderData) => 
+    api.post('/v1/orders', orderData),
+  
+  updateStatus: (id, status) => 
+    api.put(`/v1/orders/${id}/status`, { status }),
+  
+  updatePaymentStatus: (id, paymentStatus) =>
+    api.put(`/v1/orders/${id}/payment-status`, { paymentStatus }),
+  
+  cancel: (id) =>
+    api.post(`/v1/orders/${id}/cancel`),
+  
+  getStatistics: (params) =>
+    api.get('/v1/orders/stats', { params }),
+  
+  getUserOrders: (userId, params) =>
+    api.get(`/v1/orders/user/${userId}`, { params }),
+};
+
+// 权限管理API
+export const permissionApi = {
+  // 角色管理
+  getRoles: (params) =>
+    api.get('/v1/auth/roles', { params }),
+  
+  getRoleById: (id) =>
+    api.get(`/v1/auth/roles/${id}`),
+  
+  createRole: (roleData) =>
+    api.post('/v1/auth/roles', roleData),
+  
+  updateRole: (id, roleData) =>
+    api.put(`/v1/auth/roles/${id}`, roleData),
+  
+  deleteRole: (id) =>
+    api.delete(`/v1/auth/roles/${id}`),
+  
+  assignRolePermissions: (roleId, permissionIds) =>
+    api.post(`/v1/auth/roles/${roleId}/permissions`, { permissionIds }),
+  
+  removeRolePermissions: (roleId, permissionIds) =>
+    api.delete(`/v1/auth/roles/${roleId}/permissions`, { data: { permissionIds } }),
+  
+  // 权限管理
+  getPermissions: (params) =>
+    api.get('/v1/auth/permissions/list', { params }),
+  
+  getResources: () =>
+    api.get('/v1/auth/resources'),
+  
+  createPermission: (permissionData) =>
+    api.post('/v1/auth/permissions', permissionData),
+  
+  updatePermission: (id, permissionData) =>
+    api.put(`/v1/auth/permissions/${id}`, permissionData),
+  
+  deletePermission: (id) =>
+    api.delete(`/v1/auth/permissions/${id}`),
+  
+  // 用户角色管理
+  getUserRoles: (userId) =>
+    api.get(`/v1/auth/users/${userId}/roles`),
+  
+  assignUserRoles: (userId, roleIds) =>
+    api.post(`/v1/auth/users/${userId}/roles`, { roleIds }),
+  
+  removeUserRoles: (userId, roleIds) =>
+    api.delete(`/v1/auth/users/${userId}/roles`, { data: { roleIds } }),
+};
+
+// 导出所有API
+export default {
+  health: healthApi,
+  auth: authApi,
+  users: userApi,
+  products: productApi,
+  carts: cartApi,
+  orders: orderApi,
+  permissions: permissionApi,
+};
