@@ -119,30 +119,74 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useUserStore } from '../stores/user'
+import api from '../services/api'
 
 const activeTab = ref('all')
+const orders = ref([])
+const loading = ref(false)
+const userStore = useUserStore()
 
-const orders = ref([
-  { orderId: 'ORD-001', date: '2023-10-15', items: 3, total: 89.97, status: 'Completed', estimatedDelivery: '2023-10-18', deliveredDate: '2023-10-17' },
-  { orderId: 'ORD-002', date: '2023-10-20', items: 1, total: 24.99, status: 'Processing', estimatedDelivery: '2023-10-25', deliveredDate: '' },
-  { orderId: 'ORD-003', date: '2023-10-22', items: 5, total: 156.45, status: 'Processing', estimatedDelivery: '2023-10-27', deliveredDate: '' },
-  { orderId: 'ORD-004', date: '2023-10-05', items: 2, total: 45.98, status: 'Completed', estimatedDelivery: '2023-10-08', deliveredDate: '2023-10-07' },
-  { orderId: 'ORD-005', date: '2023-09-28', items: 4, total: 112.96, status: 'Completed', estimatedDelivery: '2023-10-01', deliveredDate: '2023-09-30' },
-])
+// 加载订单
+const fetchOrders = async () => {
+  if (!userStore.isAuthenticated) {
+    ElMessage.warning('Please login to view your orders')
+    return
+  }
+  
+  loading.value = true
+  try {
+    const response = await api.orders.getAll({ limit: 50 })
+    orders.value = response.data.orders || []
+    
+    // 转换数据格式以匹配前端
+    orders.value = orders.value.map(order => ({
+      orderId: order.order_number || `ORD-${order.id.toString().padStart(3, '0')}`,
+      date: new Date(order.created_at).toISOString().split('T')[0],
+      items: order.items?.length || order.item_count || 0,
+      total: parseFloat(order.total_amount) || 0,
+      status: order.status || 'pending',
+      estimatedDelivery: calculateEstimatedDelivery(order.created_at),
+      deliveredDate: order.status === 'delivered' ? new Date(order.updated_at).toISOString().split('T')[0] : ''
+    }))
+  } catch (error) {
+    ElMessage.error('Failed to load orders')
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
 
-const processingOrders = computed(() => orders.value.filter(o => o.status === 'Processing'))
-const completedOrders = computed(() => orders.value.filter(o => o.status === 'Completed'))
+// 计算预计送达日期
+const calculateEstimatedDelivery = (createdDate) => {
+  const date = new Date(createdDate)
+  date.setDate(date.getDate() + 7) // 默认7天后送达
+  return date.toISOString().split('T')[0]
+}
+
+onMounted(() => {
+  if (userStore.isAuthenticated) {
+    fetchOrders()
+  }
+})
+
+const processingOrders = computed(() => orders.value.filter(o => 
+  ['pending', 'processing', 'shipped'].includes(o.status.toLowerCase())
+))
+
+const completedOrders = computed(() => orders.value.filter(o => 
+  ['completed', 'delivered'].includes(o.status.toLowerCase())
+))
 
 const getStatusType = (status) => {
-  const types = {
-    'Processing': 'warning',
-    'Completed': 'success',
-    'Cancelled': 'danger',
-    'Shipped': 'primary'
-  }
-  return types[status] || 'info'
+  const statusLower = status.toLowerCase()
+  if (['pending', 'processing'].includes(statusLower)) return 'warning'
+  if (['completed', 'delivered'].includes(statusLower)) return 'success'
+  if (['cancelled', 'failed'].includes(statusLower)) return 'danger'
+  if (['shipped'].includes(statusLower)) return 'primary'
+  return 'info'
 }
 
 const viewOrder = (orderId) => {

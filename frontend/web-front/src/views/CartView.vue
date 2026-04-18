@@ -129,6 +129,7 @@
 <script setup>
 import { Delete } from '@element-plus/icons-vue'
 import { useCartStore } from '../stores/cart'
+import { useUserStore } from '../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 
@@ -161,23 +162,35 @@ const clearCart = () => {
   })
 }
 
-const checkout = () => {
-  ElMessageBox.confirm(
-    `Proceed to checkout with ${cartStore.totalItems} items totaling $${cartStore.totalPrice.toFixed(2)}?`,
-    'Confirm Checkout',
-    {
-      confirmButtonText: 'Checkout',
-      cancelButtonText: 'Cancel',
-      type: 'success',
+  const checkout = () => {
+    if (cartStore.items.length === 0) {
+      ElMessage.warning('Your cart is empty')
+      return
     }
-  ).then(() => {
-    ElMessage.success('Order placed successfully!')
-    cartStore.clearCart()
-    router.push('/orders')
-  }).catch(() => {
-    // cancelled
-  })
-}
+    
+    // 检查用户是否已登录
+    const userStore = useUserStore()
+    if (!userStore.isAuthenticated) {
+      ElMessageBox.confirm(
+        'You need to login to proceed with checkout. Would you like to login now?',
+        'Login Required',
+        {
+          confirmButtonText: 'Login',
+          cancelButtonText: 'Continue as Guest',
+          type: 'warning',
+        }
+      ).then(() => {
+        // 跳转到登录页面
+        ElMessage.info('Login feature coming soon')
+        // TODO: 实现登录功能后重定向到登录页面
+      }).catch(() => {
+        // 继续作为游客结账
+        router.push('/checkout')
+      })
+    } else {
+      router.push('/checkout')
+    }
+  }
 
 const continueShopping = () => {
   router.push('/products')
