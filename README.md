@@ -10,7 +10,8 @@ XF Shopee 是一个完整的部门商店ERP系统，包含后端服务、Web前�
 ├── backend/              # 后端API服务 (Node.js/Express/MySQL)
 ├── frontend/
 │   ├── web-front/       # Web前端购物网站 (Vue 3/Element Plus/Pinia)
-│   └── web-admin/       # Web后台管理系统 (React/Ant Design)
+│   ├── web-admin/       # Web后台管理系统 (React/Ant Design)
+│   └── web-mobile/      # 移动端H5应用 (React/Ant Design Mobile)
 ├── mobile/              # 移动端应用 (React Native Hybrid架构)
 └── docs/                # 设计文档和规范
 ```
@@ -63,6 +64,13 @@ XF Shopee 是一个完整的部门商店ERP系统，包含后端服务、Web前�
 - 订单处理和客户服务
 - 离线数据同步
 
+### 9. 移动端H5应用 (客户/员工移动访问)
+- 基于React的H5应用，与移动端相同页面
+- 通过浏览器访问: `xfbh/mobile/index.html`
+- 移动端优化UI和交互
+- 支持扫码、订单处理等核心功能
+- 与原生应用共享API和数据
+
 ## 技术栈
 
 ### 后端技术
@@ -95,6 +103,14 @@ XF Shopee 是一个完整的部门商店ERP系统，包含后端服务、Web前�
 - **导航**: React Navigation
 - **原生模块**: 存储、相机、扫码、通知
 - **通信**: JavaScript Bridge
+
+### 移动端H5技术
+- **框架**: React 18
+- **UI库**: Ant Design Mobile
+- **路由**: React Router DOM 6
+- **构建工具**: Vite
+- **HTTP客户端**: Axios
+- **部署路径**: `/xfbh/mobile/`
 
 ## 快速开始
 
@@ -162,6 +178,25 @@ npm run ios
 
 # 运行Android模拟器
 npm run android
+```
+
+### 6. 移动端H5部署
+```bash
+# 进入移动端H5目录
+cd frontend/web-mobile
+
+# 安装依赖
+npm install
+
+# 配置环境变量
+cp .env.example .env
+# 编辑 .env 文件配置基础路径和API URL
+
+# 启动开发服务器
+npm run dev
+
+# 构建生产版本
+npm run build
 ```
 
 ## 数据库架构
@@ -313,7 +348,15 @@ npm run test:coverage
    - 扫码和存储功能
    - iOS/Android项目结构
 
-5. **文档和指南**
+5. **移动端H5应用**
+   - React项目结构搭建
+   - 移动端优化UI组件
+   - 底部导航和路由系统
+   - API集成和认证上下文
+   - 响应式移动端设计
+   - 部署配置支持 `/xfbh/mobile/` 路径
+
+6. **文档和指南**
    - 系统集成测试文档
    - 数据库设计和迁移指南
    - 部署和运维指南
