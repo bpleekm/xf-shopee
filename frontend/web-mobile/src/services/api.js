@@ -27,15 +27,39 @@ api.interceptors.request.use(
 
 // 响应拦截器 - 处理错误
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    const data = response.data;
+    // 处理统一API响应格式
+    if (data && typeof data === 'object') {
+      if (data.success === true) {
+        // 返回实际数据
+        return data.data;
+      } else {
+        // 业务逻辑错误，抛出错误信息
+        const error = new Error(data.message || '请求失败');
+        error.code = data.statusCode || 400;
+        throw error;
+      }
+    }
+    // 如果响应格式不符合预期，直接返回
+    return data;
+  },
   (error) => {
     if (error.response?.status === 401) {
       // 未授权，清除token并跳转到登录页
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      // 触发自定义事件，让App组件处理跳转
+      window.dispatchEvent(new CustomEvent('unauthorized', { 
+        detail: { status: 401 }
+      }));
     }
-    return Promise.reject(error.response?.data || error.message);
+    // 返回统一的错误格式
+    const errorData = error.response?.data;
+    if (errorData && typeof errorData === 'object' && errorData.message) {
+      return Promise.reject(new Error(errorData.message));
+    }
+    return Promise.reject(new Error(error.message || '网络请求失败'));
   }
 );
 
