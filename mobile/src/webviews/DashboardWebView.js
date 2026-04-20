@@ -53,7 +53,7 @@ const DashboardWebView = (props) => {
 
   return (
     <BaseWebView
-      source={{ uri: WEB_ADMIN_URLS.DASHBOARD }}
+      source={{ uri: `${WEB_ADMIN_URLS.BASE}${WEB_ADMIN_URLS.DASHBOARD}` }}
       onMessage={handleMessage}
       injectedJavaScript={injectedJavaScript}
       {...props}

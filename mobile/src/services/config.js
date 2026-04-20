@@ -3,6 +3,8 @@
  */
 
 // Backend API configuration
+// Development: http://localhost:3000/api
+// Production: https://your-domain.com/xfbh/api
 export const API_CONFIG = {
   BASE_URL: process.env.API_BASE_URL || 'http://localhost:3000/api',
   TIMEOUT: 30000,
@@ -13,12 +15,16 @@ export const API_CONFIG = {
 };
 
 // Web Admin URLs (for WebView loading)
+// Development: http://localhost:3001
+// Production: https://your-domain.com/xfbh/admin
 export const WEB_ADMIN_URLS = {
-  DASHBOARD: process.env.WEB_ADMIN_DASHBOARD_URL || 'http://localhost:3001/dashboard',
-  SKU_MANAGEMENT: process.env.WEB_ADMIN_SKU_URL || 'http://localhost:3001/products',
-  ORDER_MANAGEMENT: process.env.WEB_ADMIN_ORDER_URL || 'http://localhost:3001/orders',
-  USER_MANAGEMENT: process.env.WEB_ADMIN_USER_URL || 'http://localhost:3001/users',
-  LOGIN: process.env.WEB_ADMIN_LOGIN_URL || 'http://localhost:3001/login',
+  BASE: process.env.WEB_ADMIN_BASE_URL || 'http://localhost:3001',
+  DASHBOARD: process.env.WEB_ADMIN_DASHBOARD_URL || '/dashboard',
+  SKU_MANAGEMENT: process.env.WEB_ADMIN_SKU_URL || '/products',
+  ORDER_MANAGEMENT: process.env.WEB_ADMIN_ORDER_URL || '/orders',
+  USER_MANAGEMENT: process.env.WEB_ADMIN_USER_URL || '/users',
+  LOGIN: process.env.WEB_ADMIN_LOGIN_URL || '/login',
+  PROFILE: process.env.WEB_ADMIN_PROFILE_URL || '/profile',
 };
 
 // Mobile App Configuration

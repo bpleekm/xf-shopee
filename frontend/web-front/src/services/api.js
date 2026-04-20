@@ -1,8 +1,13 @@
 import axios from 'axios'
 
+// API基础URL配置
+// 开发环境: http://localhost:3000/api
+// 生产环境: /xfbh/api (通过Nginx代理)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+
 // 创建axios实例
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -102,7 +102,7 @@ const OrderWebView = (props) => {
 
   return (
     <BaseWebView
-      source={{ uri: WEB_ADMIN_URLS.ORDER_MANAGEMENT }}
+      source={{ uri: `${WEB_ADMIN_URLS.BASE}${WEB_ADMIN_URLS.ORDER_MANAGEMENT}` }}
       onMessage={handleMessage}
       injectedJavaScript={injectedJavaScript}
       {...props}

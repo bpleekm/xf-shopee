@@ -123,7 +123,7 @@ const SKUWebView = (props) => {
   
   return (
     <BaseWebView
-      source={{ uri: WEB_ADMIN_URLS.SKU_MANAGEMENT }}
+      source={{ uri: `${WEB_ADMIN_URLS.BASE}${WEB_ADMIN_URLS.SKU_MANAGEMENT}` }}
       onMessage={handleMessage}
       injectedJavaScript={injectedJavaScript}
       {...props}
