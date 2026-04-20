@@ -11,10 +11,10 @@ import {
 import {
   UserOutline,
   LockOutline,
-  PhoneOutline,
+  PhonebookOutline,
   MailOutline,
   TeamOutline,
-  ArrowLeftOutline,
+  LeftOutline,
 } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
@@ -137,7 +137,7 @@ const RegisterPage = () => {
                 { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的手机号' },
               ]}
             >
-              <Input placeholder="请输入手机号" prefix={<PhoneOutline />} />
+              <Input placeholder="请输入手机号" prefix={<PhonebookOutline />} />
             </Form.Item>
             <Form.Item name="department" label="部门">
               <Input placeholder="请输入部门" prefix={<TeamOutline />} />
@@ -252,7 +252,7 @@ const RegisterPage = () => {
             onClick={() => navigate('/login')}
             style={{ marginRight: '12px' }}
           >
-            <ArrowLeftOutline />
+            <LeftOutline />
           </Button>
           <div style={{ flex: 1, textAlign: 'center' }}>
             <div style={{ fontSize: '24px', fontWeight: 'bold' }}>

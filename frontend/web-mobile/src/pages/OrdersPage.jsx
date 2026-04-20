@@ -21,8 +21,8 @@ import {
   CloseCircleOutline,
   TruckOutline,
   FilterOutline,
-  DownloadOutline,
-  PrinterOutline,
+  ArrowDownCircleOutline,
+  FileOutline,
 } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
 import { orderApi } from '../services/api';
@@ -329,7 +329,7 @@ const OrdersPage = () => {
               color="default"
               onClick={() => handlePrint(order)}
             >
-              <PrinterOutline />
+              <FileOutline />
             </Button>
           </Space>
         </Space>
@@ -438,7 +438,7 @@ const OrdersPage = () => {
             onClick={handleExport}
             style={{ borderRadius: '20px' }}
           >
-            <DownloadOutline /> 导出
+            <ArrowDownCircleOutline /> 导出
           </Button>
         </Grid.Item>
       </Grid>

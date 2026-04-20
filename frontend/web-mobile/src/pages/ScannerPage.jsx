@@ -13,12 +13,12 @@ import {
   Modal,
 } from 'antd-mobile';
 import {
-  ScanOutline,
-  PlusOutline,
+  ScanningOutline,
+  AddOutline,
   MinusOutline,
   CheckCircleOutline,
   CloseCircleOutline,
-  HistoryOutline,
+  ClockCircleOutline,
   CameraOutline,
 } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
@@ -285,7 +285,7 @@ const ScannerPage = () => {
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <ScanOutline fontSize={24} color="#666" />
+            <ScanningOutline fontSize={24} color="#666" />
           )}
         </div>
       }
@@ -398,7 +398,7 @@ const ScannerPage = () => {
                 </div>
               </div>
             ) : (
-              <ScanOutline fontSize={48} color="#666" />
+              <ScanningOutline fontSize={48} color="#666" />
             )}
           </div>
           <div style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
@@ -414,7 +414,7 @@ const ScannerPage = () => {
               onClick={() => setManualInputVisible(true)}
               style={{ borderRadius: '20px' }}
             >
-              <PlusOutline /> 手动输入
+              <AddOutline /> 手动输入
             </Button>
           </Grid.Item>
           <Grid.Item>
@@ -424,7 +424,7 @@ const ScannerPage = () => {
               onClick={() => setHistoryVisible(true)}
               style={{ borderRadius: '20px' }}
             >
-              <HistoryOutline /> 扫描历史
+              <ClockCircleOutline /> 扫描历史
             </Button>
           </Grid.Item>
         </Grid>
@@ -453,7 +453,7 @@ const ScannerPage = () => {
               size="small"
               onClick={() => setQuantity(quantity + 1)}
             >
-              <PlusOutline />
+              <AddOutline />
             </Button>
           </Space>
         </div>
@@ -487,7 +487,7 @@ const ScannerPage = () => {
       >
         {scannedItems.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
-            <ScanOutline fontSize={48} style={{ marginBottom: '12px' }} />
+            <ScanningOutline fontSize={48} style={{ marginBottom: '12px' }} />
             <div>暂无扫描结果</div>
             <div style={{ fontSize: '12px', marginTop: '4px' }}>
               点击上方按钮开始扫描

@@ -6,7 +6,7 @@ import {
   UnorderedListOutline,
   ShopbagOutline,
   UserOutline,
-  ScanOutline,
+  ScanningOutline,
 } from 'antd-mobile-icons'
 
 // 导入页面组件
@@ -48,7 +48,7 @@ const tabs = [
   {
     key: '/scanner',
     title: '扫码',
-    icon: <ScanOutline />,
+    icon: <ScanningOutline />,
   },
   {
     key: '/profile',

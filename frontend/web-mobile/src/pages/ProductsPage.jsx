@@ -15,10 +15,10 @@ import {
 } from 'antd-mobile';
 import {
   AddOutline,
-  EditOutline,
+  EditSOutline,
   DeleteOutline,
   EyeOutline,
-  ScanOutline,
+  ScanningOutline,
   FilterOutline,
 } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
@@ -273,7 +273,7 @@ const ProductsPage = () => {
             onClick={handleScan}
             style={{ borderRadius: '20px' }}
           >
-            <ScanOutline /> 扫码
+            <ScanningOutline /> 扫码
           </Button>
         </Grid.Item>
         <Grid.Item>

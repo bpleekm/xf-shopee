@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Card, List, Space, Tag, Button, NoticeBar, Swiper, Image } from 'antd-mobile';
-import { AppOutline, ShopbagOutline, UnorderedListOutline, ScanOutline } from 'antd-mobile-icons';
+import { AppOutline, ShopbagOutline, UnorderedListOutline, ScanningOutline } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
 import { productApi, orderApi } from '../services/api';
 
@@ -71,7 +71,7 @@ const DashboardPage = () => {
     {
       key: 'scanner',
       title: '扫码入库',
-      icon: <ScanOutline fontSize={24} />,
+      icon: <ScanningOutline fontSize={24} />,
       color: colors[2],
       path: '/scanner',
     },

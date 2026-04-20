@@ -16,16 +16,16 @@ import {
 } from 'antd-mobile';
 import {
   UserOutline,
-  PhoneOutline,
+  PhonebookOutline,
   MailOutline,
   EnvironmentOutline,
-  SettingOutline,
+  AppOutline,
   BellOutline,
   LockOutline,
-  LogoutOutline,
+  CloseCircleOutline,
   EditSOutline,
   TeamOutline,
-  SecurityOutline,
+  CheckShieldOutline,
   QuestionCircleOutline,
 } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
@@ -150,7 +150,7 @@ const ProfilePage = () => {
     {
       key: 'darkMode',
       title: '深色模式',
-      icon: <SettingOutline />,
+      icon: <AppOutline />,
       description: '切换深色/浅色主题',
       type: 'switch',
       value: settings.darkMode,
@@ -159,7 +159,7 @@ const ProfilePage = () => {
     {
       key: 'autoSync',
       title: '自动同步',
-      icon: <SecurityOutline />,
+      icon: <CheckShieldOutline />,
       description: '自动同步数据到云端',
       type: 'switch',
       value: settings.autoSync,
@@ -177,7 +177,7 @@ const ProfilePage = () => {
     {
       key: 'vibration',
       title: '震动反馈',
-      icon: <SettingOutline />,
+      icon: <AppOutline />,
       description: '操作成功时震动提示',
       type: 'switch',
       value: settings.vibration,
@@ -288,7 +288,7 @@ const ProfilePage = () => {
           <List.Item prefix={<UserOutline />} description="用户名">
             {user?.username || '未设置'}
           </List.Item>
-          <List.Item prefix={<PhoneOutline />} description="手机号">
+          <List.Item prefix={<PhonebookOutline />} description="手机号">
             {user?.phone || '未设置'}
           </List.Item>
           <List.Item prefix={<MailOutline />} description="邮箱">
@@ -302,7 +302,7 @@ const ProfilePage = () => {
               {user?.role || '普通用户'}
             </Tag>
           </List.Item>
-          <List.Item prefix={<SecurityOutline />} description="上次登录">
+          <List.Item prefix={<CheckShieldOutline />} description="上次登录">
             {user?.lastLogin ? new Date(user.lastLogin).toLocaleString() : '从未登录'}
           </List.Item>
         </List>
@@ -402,7 +402,7 @@ const ProfilePage = () => {
         style={{ borderRadius: '8px' }}
       >
         <Space align="center" style={{ '--gap': '8px' }}>
-          <LogoutOutline />
+          <CloseCircleOutline />
           退出登录
         </Space>
       </Button>

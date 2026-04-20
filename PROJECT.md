@@ -13,7 +13,7 @@
 ## 项目结构
 所有项目文件应位于仓库根目录下，采用扁平化结构组织，避免多层嵌套目录。
 
-### 推荐目录结构
+ ### 推荐目录结构
 ```
 xf-shopee/
 ├── backend/           # 后端服务代码
@@ -21,10 +21,11 @@ xf-shopee/
 │   ├── package.json
 │   └── ...
 ├── frontend/         # Web前端代码
-│   ├── web-admin/    # 后台管理系统
-│   ├── web-front/    # 前台购物网站
+│   ├── web-admin/    # 后台管理系统（Vue 3 + Element Plus）
+│   ├── web-front/    # 前台购物网站（Vue 3 + Element Plus）
+│   ├── web-mobile/   # 移动端H5应用（React + antd-mobile）
 │   └── ...
-├── mobile/           # 移动端应用代码
+├── mobile/           # 移动端原生应用代码（React Native Hybrid）
 ├── docs/             # 项目文档（包括本设计文档）
 │   └── modules/      # 模块详细设计
 ├── scripts/          # 构建、部署脚本
@@ -47,7 +48,7 @@ xf-shopee/
 
 ### 1. 模块根目录
 - `DESIGN.md`: 模块整体架构、目录结构、代码规范
-- 位置: `backend/DESIGN.md`, `frontend/web-admin/DESIGN.md`, `frontend/web-front/DESIGN.md`, `mobile/DESIGN.md`
+- 位置: `backend/DESIGN.md`, `frontend/web-admin/DESIGN.md`, `frontend/web-front/DESIGN.md`, `frontend/web-mobile/DESIGN.md`, `mobile/DESIGN.md`
 
 ### 2. 页面目录
 - `DESIGN.md`: 页面设计原则、状态管理、路由设计、数据获取策略
