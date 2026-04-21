@@ -12,7 +12,7 @@ xf-shopee/
 │   ├── web-admin/                # Web后台管理系统 (React/Ant Design)
 │   ├── web-front/                # Web前台购物网站 (Vue 3/Element Plus)
 │   └── web-mobile/               # 移动端H5应用 (React/Ant Design Mobile)
-├── mobile/                       # 移动端原生应用 (React Native Hybrid架构)
+├── mobile/                       # 移动端原生应用 (Android/iOS WebView容器)
 ├── docs/                         # 项目文档和设计规范
 ├── scripts/                      # 构建和部署脚本 (待创建)
 ├── config/                       # 配置文件 (待创建)
@@ -168,36 +168,52 @@ frontend/web-mobile/
 
 **文件统计**: 11个React组件文件 (7个页面 + 4个服务/上下文文件)
 
-### 5. 移动端原生应用 (mobile/)
+### 5. 移动端原生应用 (mobile/) - 原生WebView容器
 ```
 mobile/
-├── src/                          # 源代码
-│   ├── screens/                  # 屏幕组件
-│   ├── components/               # 可复用组件
-│   ├── navigation/               # 导航配置
-│   ├── webviews/                 # WebView管理
-│   ├── native/                   # 原生模块
-│   ├── services/                 # API服务
-│   └── utils/                    # 工具函数
-├── android/                      # Android原生代码
-│   └── app/                      # Android应用代码
-├── ios/                          # iOS原生代码
-│   └── XFShopee/                 # iOS应用代码
-├── DESIGN.md                     # 设计规范
-├── README.md                     # 使用说明
-├── package.json                  # 依赖配置
-├── app.json                      # Expo配置
-├── index.js                      # 应用入口
-├── babel.config.js               # Babel配置
-└── metro.config.js               # Metro配置
+├── android/                      # Android原生项目
+│   ├── app/src/main/
+│   │   ├── java/com/xfshopee/    # Java/Kotlin源代码
+│   │   │   ├── MainActivity.kt          # 主Activity
+│   │   │   ├── WebViewManager.kt        # WebView管理器
+│   │   │   ├── WebViewStack.kt          # WebView堆栈管理
+│   │   │   ├── CookieManager.kt         # Cookie管理
+│   │   │   ├── ScannerManager.kt        # 扫码功能
+│   │   │   ├── StorageManager.kt        # 本地存储
+│   │   │   └── BridgeInterface.kt       # JavaScript桥接
+│   │   ├── res/                         # 资源文件
+│   │   └── AndroidManifest.xml          # 清单文件
+│   └── build.gradle                     # 构建配置
+├── ios/                          # iOS原生项目
+│   ├── XFShopee/
+│   │   ├── AppDelegate.swift                # 应用代理
+│   │   ├── SceneDelegate.swift              # 场景代理
+│   │   ├── ViewControllers/
+│   │   │   ├── MainViewController.swift     # 主视图控制器
+│   │   │   ├── WebViewViewController.swift  # WebView控制器
+│   │   │   ├── WebViewStackManager.swift    # WebView堆栈管理
+│   │   │   ├── CookieManager.swift          # Cookie管理
+│   │   │   ├── ScannerManager.swift         # 扫码功能
+│   │   │   └── StorageManager.swift         # 本地存储
+│   │   ├── Models/WebViewConfig.swift       # WebView配置模型
+│   │   ├── Resources/                       # 资源文件
+│   │   └── Info.plist                       # 配置文件
+│   └── Podfile                             # 依赖管理
+├── src/                          # 共享配置和桥接代码
+│   ├── webview-config/module-urls.json      # 模块URL配置
+│   ├── webview-config/bridge-protocol.md    # 桥接协议文档
+│   └── assets/icons/                        # 应用图标
+├── DESIGN.md                     # 设计规范（原生WebView架构）
+└── README.md                     # 项目说明
 ```
 
 **架构特点**:
-- Hybrid混合架构 (原生容器 + WebView)
-- React Native跨平台开发
-- 原生模块提供存储、相机、扫码功能
-- WebView管理系统模块页面加载
-- JavaScript Bridge通信
+- 纯原生WebView容器架构（Android/iOS）
+- 多WebView堆栈管理，每个模块独立WebView实例
+- 加载 `frontend/web-mobile/` H5应用模块
+- 原生功能：扫码、存储、相机、推送、网络监测
+- JavaScript Bridge双向通信
+- 支持 `/xfbh/mobile/` URL路径规范
 
 ### 6. 文档目录 (docs/)
 ```
@@ -251,11 +267,12 @@ docs/
 - **部署路径**: `/xfbh/mobile/`
 
 ### 移动端原生技术栈
-- **框架**: React Native 0.72.x
-- **架构**: Hybrid (原生容器 + WebView)
-- **导航**: React Navigation
-- **原生模块**: 存储、相机、扫码、通知
-- **通信**: JavaScript Bridge
+- **Android**: Kotlin/Java + Android WebView + Jetpack组件
+- **iOS**: Swift/Objective-C + WKWebView + UIKit/SwiftUI
+- **架构**: 原生WebView容器 + 多WebView堆栈
+- **原生模块**: 存储管理、扫码、相机、推送、网络监测
+- **通信**: JavaScript Bridge双向通信
+- **H5集成**: 加载 `frontend/web-mobile/` React H5应用
 
 ## URL规范
 
@@ -280,7 +297,7 @@ docs/
 1. **后端服务**: 完整的RESTful API，包含所有核心业务模块
 2. **Web前端**: Vue 3购物网站，支持产品浏览、购物车、下单
 3. **Web后台**: React管理系统，支持用户、产品、订单管理
-4. **移动端原生**: React Native Hybrid架构，支持WebView管理
+4. **移动端原生**: Android/iOS原生WebView容器架构，支持多WebView堆栈管理
 5. **移动端H5**: React移动应用，支持扫码、订单处理等核心功能
 6. **文档系统**: 完整的设计文档和API文档
 
@@ -302,19 +319,26 @@ docs/
 | Web后台 | React组件 | 11 | 页面、组件、上下文 |
 | Web前台 | Vue组件/JS | 20 | 视图、组件、状态管理 |
 | 移动端H5 | React组件 | 11 | 7个页面 + 4个服务/上下文 |
-| 移动端原生 | React Native | - | 混合架构，包含原生代码 |
+| 移动端原生 | Android/iOS原生 | - | WebView容器架构，管理多WebView实例 |
 | 文档 | Markdown | 13 | 设计文档、API文档、指南 |
 
 ## 变更历史
 
 ### 最新变更 (2026-04-20)
-1. **新增移动端H5应用模块** (`frontend/web-mobile/`)
+1. **重新实现移动端原生架构**
+   - 从React Native Hybrid架构改为纯原生WebView容器
+   - Android/iOS原生应用管理多个WebView实例
+   - 每个WebView加载 `frontend/web-mobile/` H5模块
+   - 原生功能：扫码、存储、相机、推送、网络监测
+   - 更新 `mobile/DESIGN.md` 和 `docs/modules/08-mobile-app.md` 设计文档
+
+2. **新增移动端H5应用模块** (`frontend/web-mobile/`)
    - 完整实现React + Ant Design Mobile应用
    - 包含7个核心页面：仪表板、产品管理、订单处理、扫码、个人中心、登录、注册
    - 配置Vite构建工具，支持 `/xfbh/mobile/` 基础路径
    - 更新API服务层，适配后端统一响应格式
 
-2. **文档更新**
+3. **文档更新**
    - 更新 `PROJECT.md`: 添加web-mobile模块说明
    - 更新 `README.md`: 完善项目概述和技术栈
    - 创建 `docs/modules/09-web-mobile.md`: 详细设计文档

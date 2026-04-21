@@ -42,9 +42,10 @@
    - 可通过 `/xfbh/mobile/` 访问
 
 9. **[移动端原生App](./08-mobile-app.md)**
-   - 员工移动办公原生应用（Hybrid架构）
-   - 支持SKU管理和订单处理
-   - 集成WebView和原生模块
+   - 员工移动办公原生应用（原生WebView架构）
+   - Android/iOS原生容器管理多个WebView实例
+   - 加载`frontend/web-mobile/` H5应用模块
+   - 集成原生扫码、存储、推送功能
 
 ## 模块依赖关系
 
