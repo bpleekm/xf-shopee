@@ -420,7 +420,14 @@ npm run test:coverage
 - **邮件**: support@xfshopee.com
 - **紧急联系人**: 系统管理员
 
+## 项目结构文档
+
+详细的项目结构和模块说明请参考以下文档：
+- [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - 完整的项目结构、模块详细说明和技术栈
+- [PROJECT.md](PROJECT.md) - 项目概述、架构规范和工作空间规范
+- [docs/modules/README.md](docs/modules/README.md) - 模块依赖关系和详细设计文档
+
 ---
 
-*最后更新: 2024-04-20*
-*版本: 2.0.0*
+*最后更新: 2026-04-20*
+*版本: 2.1.0*

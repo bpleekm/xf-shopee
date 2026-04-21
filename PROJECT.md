@@ -157,6 +157,13 @@ xf-shopee/
 - 数据库变更需要迁移脚本
 - 配置变更需要环境隔离
 
+## 相关文档
+- [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) - 详细的项目结构和模块说明
+- [README.md](README.md) - 项目主文档和使用指南
+- [docs/modules/](docs/modules/) - 模块详细设计文档
+
 ---
+
 *设计规范文件需随项目演进持续更新，确保与实际代码保持一致。*
+*最后更新: 2026-04-20*
 

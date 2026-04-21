@@ -133,5 +133,10 @@
 ### DevOps
 - **容器化**: Docker（可选）
 - **CI/CD**: Jenkins / GitLab CI（可选）
-- **监控**: Prometheus + Grafana（可选）
+ - **监控**: Prometheus + Grafana（可选）
+
+---
+
+*最后更新: 2026-04-20*  
+*详细项目结构请参考 [PROJECT_STRUCTURE.md](../../PROJECT_STRUCTURE.md)*
 
