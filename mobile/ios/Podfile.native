@@ -1,0 +1,85 @@
+# XF Shopee ERP 原生iOS应用 Podfile
+# 纯原生WebView架构，不依赖React Native
+
+platform :ios, '15.0'
+use_frameworks!
+
+# 主应用目标
+target 'XFShopeeNative' do
+  # UI组件
+  pod 'SnapKit', '~> 5.6'  # Auto Layout简化
+  
+  # 网络请求
+  pod 'Alamofire', '~> 5.7'
+  
+  # 二维码扫描
+  pod 'QRCodeReader.swift', '~> 10.1'
+  
+  # 键值存储
+  pod 'KeychainAccess', '~> 4.2'
+  
+  # 日志记录
+  pod 'CocoaLumberjack', '~> 3.7'
+  
+  # 图片加载
+  pod 'Kingfisher', '~> 7.8'
+  
+  # 表单验证
+  pod 'Validator', '~> 3.2'
+  
+  # 本地化
+  pod 'Localize-Swift', '~> 3.2'
+  
+  # 调试工具
+  pod 'FLEX', '~> 5.22', :configurations => ['Debug']
+  
+  # 性能监控
+  pod 'Firebase/Crashlytics', '~> 10.12'
+  pod 'Firebase/Analytics', '~> 10.12'
+end
+
+# 单元测试目标
+target 'XFShopeeNativeTests' do
+  inherit! :search_paths
+  
+  # 测试框架
+  pod 'Quick', '~> 6.1'
+  pod 'Nimble', '~> 11.2'
+  
+  # Mock框架
+  pod 'OHHTTPStubs', '~> 9.1'
+  
+  # 快照测试
+  pod 'iOSSnapshotTestCase', '~> 8.0'
+end
+
+# UI测试目标
+target 'XFShopeeNativeUITests' do
+  inherit! :search_paths
+  
+  # UI测试框架
+  pod 'EarlGrey', '~> 2.2'
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # 设置Swift版本
+      config.build_settings['SWIFT_VERSION'] = '5.0'
+      
+      # 启用模块
+      config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+      
+      # 禁用Bitcode
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+      
+      # 设置部署目标
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      
+      # 启用完整优化
+      if config.name == 'Release'
+        config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Owholemodule'
+      end
+    end
+  end
+end

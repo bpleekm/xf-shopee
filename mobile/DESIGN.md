@@ -606,29 +606,63 @@ npm run build                # 构建H5生产版本
    - 创建`activity_main.xml`: 主界面布局
    - 创建`bottom_nav_menu.xml`: 底部导航菜单
 
+### iOS原生应用已实现
+已完成以下核心组件的Swift实现：
+
+1. **主架构组件**:
+   - `AppDelegate.swift`: 应用委托，初始化原生管理器
+   - `SceneDelegate.swift`: 场景委托（iOS 13+），处理深度链接
+   - `MainViewController.swift`: 主视图控制器，管理底部导航和WebView切换
+   - `WebViewManager.swift`: WebView实例管理，支持池化和预加载
+   - `WebViewConfig.swift`: WebView配置结构体
+
+2. **JavaScript桥接**:
+   - `JavaScriptBridge.swift`: 核心桥接接口，提供原生API给H5调用
+   - 完整的消息协议和回调机制
+   - 支持存储、扫码、Cookie、导航等原生API
+
+3. **原生功能模块**:
+   - `StorageManager.swift`: 安全存储管理，支持Keychain加密存储
+   - `ScannerManager.swift`: 二维码/条形码扫描，集成AVFoundation
+   - `CookieManager.swift`: Cookie统一管理，支持WKHTTPCookieStore
+   - `WKWebView+Extension.swift`: WebView扩展，提供便捷方法和JavaScript注入
+
+4. **项目配置**:
+   - `Info.plist`: 应用配置文件，包含权限描述和ATS设置
+   - `Podfile.native`: 原生依赖配置（CocoaPods）
+   - 完整的Xcode项目结构：`XFShopeeNative/`目录
+
 ### 技术特性
 - **多WebView隔离**: 每个功能模块运行在独立WebView中
 - **内存优化**: WebView池化和闲置超时机制
-- **安全存储**: 使用Android KeyStore加密敏感数据
-- **扫码功能**: 集成ML Kit Barcode Scanning
+- **安全存储**: 使用iOS Keychain加密敏感数据
+- **扫码功能**: 集成AVFoundation二维码扫描
 - **Cookie同步**: 跨WebView Cookie自动同步
 - **离线支持**: 本地H5资源回退机制
+- **深度链接**: 支持URL Scheme和Universal Links
 
-### 使用方式
+### Android使用方式
 1. 构建H5应用: `cd frontend/web-mobile && npm run build`
 2. 将构建输出复制到`android/app/src/main/assets/web-mobile/`
 3. 使用Android Studio打开`mobile/android/`项目
 4. 构建并运行应用到设备或模拟器
 
+### iOS使用方式
+1. 构建H5应用: `cd frontend/web-mobile && npm run build`
+2. 将构建输出复制到`ios/XFShopeeNative/Resources/web-mobile/`
+3. 安装CocoaPods依赖: `cd mobile/ios && pod install`
+4. 使用Xcode打开`XFShopeeNative.xcworkspace`
+5. 选择目标设备，构建并运行应用
+
 ### 待完成事项
-- iOS原生应用实现 (Swift + WKWebView)
-- 推送通知集成
-- 性能监控和优化
-- 完整的单元测试和集成测试
-- 应用商店发布配置
+- 推送通知集成（Firebase/APNs）
+- 性能监控和优化（Instruments，Firebase Performance）
+- 完整的单元测试和集成测试（XCTest）
+- 应用商店发布配置（App Store Connect）
+- CI/CD流水线配置（GitHub Actions，Fastlane）
 
 ---
 
 *本设计文档描述了纯原生WebView架构的移动端实现方案。*
-*最后更新: 2026-04-21*
-*版本: 3.1.0 (Android实现完成)*
+*最后更新: 2026-04-22*
+*版本: 4.0.0 (Android和iOS实现完成)*

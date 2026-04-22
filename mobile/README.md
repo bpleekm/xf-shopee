@@ -29,7 +29,26 @@ mobile/
 │   │   │   └── AndroidManifest.xml          # 清单文件
 │   │   └── build.gradle                     # 构建配置
 │   └── gradle.properties
-├── ios/                          # iOS原生项目 (待实现)
+├── ios/                          # iOS原生项目 (Swift + WKWebView)
+│   ├── XFShopeeNative/            # 原生iOS应用主目录
+│   │   ├── AppDelegate.swift      # 应用委托
+│   │   ├── SceneDelegate.swift    # 场景委托
+│   │   ├── ViewControllers/       # 视图控制器
+│   │   │   ├── MainViewController.swift     # 主视图控制器
+│   │   ├── Models/                # 数据模型
+│   │   ├── Extensions/            # 扩展类
+│   │   │   └── WKWebView+Extension.swift    # WebView扩展
+│   │   ├── Resources/             # 资源文件
+│   │   │   └── Info.plist         # 应用配置
+│   ├── Native/                    # 核心原生模块
+│   │   ├── WebViewManager.swift   # WebView管理器
+│   │   ├── JavaScriptBridge.swift # JavaScript桥接
+│   │   ├── StorageManager.swift   # 存储管理器
+│   │   ├── ScannerManager.swift   # 扫码管理器
+│   │   └── CookieManager.swift    # Cookie管理器
+│   ├── XFShopee/                  # (保留现有React Native代码)
+│   ├── Podfile                    # React Native依赖配置
+│   └── Podfile.native             # 原生依赖配置
 ├── src/                          # (保留现有React Native代码)
 ├── DESIGN.md                     # 详细设计文档 (已更新)
 └── README.md                     # 本文件
@@ -96,6 +115,7 @@ window.NativeBridge.callNative('cookie.set', {
 
 ### 环境要求
 - **Android开发**: Android Studio 2022+, JDK 11+, Android SDK 34+
+- **iOS开发**: Xcode 14+, macOS 13+, iOS 15+ SDK, CocoaPods
 - **H5开发**: Node.js 18.x (用于构建 `web-mobile` 应用)
 - **后端API**: 运行中的 XF Shopee 后端服务
 
@@ -120,6 +140,24 @@ npm run build
 
 4. 运行到设备或模拟器
 
+### 配置iOS应用
+1. 将H5构建输出复制到 iOS 资源目录：
+   ```bash
+   mkdir -p mobile/ios/XFShopeeNative/Resources/web-mobile
+   cp -r frontend/web-mobile/dist/* mobile/ios/XFShopeeNative/Resources/web-mobile/
+   ```
+
+2. 安装CocoaPods依赖：
+   ```bash
+   cd mobile/ios
+   cp Podfile.native Podfile  # 使用原生配置
+   pod install
+   ```
+
+3. 使用 Xcode 打开 `XFShopeeNative.xcworkspace`
+
+4. 选择目标设备，构建并运行应用
+
 ### 开发服务器 (热重载)
 1. 启动 H5 开发服务器：
    ```bash
@@ -127,11 +165,12 @@ npm run build
    npm run dev
    ```
 
-2. 配置 Android 应用使用开发服务器：
-   - 修改 `WebViewManager.kt` 中的 `BASE_URL` 为 `http://10.0.2.2:5173` (Android模拟器)
+2. 配置移动应用使用开发服务器：
+   - **Android**: 修改 `WebViewManager.kt` 中的 `BASE_URL` 为 `http://10.0.2.2:5173` (Android模拟器)
+   - **iOS**: 修改 `WebViewManager.swift` 中的 `baseUrl` 为 `http://localhost:5173` (iOS模拟器)
    - 或使用实际IP地址
 
-3. 重新构建并运行 Android 应用
+3. 重新构建并运行移动应用
 
 ## 模块隔离策略
 
@@ -268,21 +307,25 @@ webView.settings.apply {
 
 ### ✅ 已完成
 - **Android原生应用**: Kotlin + WebView 完整实现
+- **iOS原生应用**: Swift + WKWebView 完整实现
 - **核心架构**: 多WebView堆栈管理、JavaScript桥接
 - **原生功能**: 存储、扫码、Cookie管理、网络监测
-- **项目配置**: Gradle构建、权限配置、安全配置
+- **项目配置**: 
+  - Android: Gradle构建、权限配置、安全配置
+  - iOS: CocoaPods依赖、Info.plist配置、Xcode项目
 - **文档**: 详细设计文档和开发指南
 
 ### 🔄 进行中
-- **iOS原生应用**: Swift + WKWebView 实现
-- **推送通知**: Firebase Cloud Messaging 集成
-- **性能监控**: 应用性能数据收集和分析
+- **推送通知**: Firebase Cloud Messaging / Apple Push Notification 集成
+- **性能监控**: 应用性能数据收集和分析 (Firebase Performance)
+- **CI/CD**: GitHub Actions 自动化构建和测试
 
 ### 📋 待完成
-- **完整测试**: 单元测试、集成测试、E2E测试
-- **应用商店**: Google Play 和 App Store 发布配置
+- **完整测试**: 单元测试 (JUnit/XCTest)、集成测试、E2E测试
+- **应用商店**: Google Play 和 App Store 发布配置 (Fastlane)
 - **CDN集成**: H5资源CDN加速和版本管理
 - **离线功能**: 完整的离线数据同步机制
+- **Analytics**: 用户行为分析和业务指标监控
 
 ## 相关文档
 
@@ -292,6 +335,5 @@ webView.settings.apply {
 - [部署指南](../backend/DEPLOYMENT.md): 系统部署指南
 
 ---
-
-*最后更新: 2026-04-21*  
-*版本: 4.0.0 (纯原生WebView架构)*
+*最后更新: 2026-04-22*  
+*版本: 5.0.0 (Android和iOS原生应用完整实现)*
