@@ -809,9 +809,105 @@ pm2 start src/index.js --name "xf-shopee"
 # Copy nginx config from above and reload
 ```
 
+ ## Mobile Application Deployment
+
+### 1. Mobile H5 Application (web-mobile)
+
+The mobile H5 application is built using React 18 and Ant Design Mobile, located in `frontend/web-mobile/`.
+
+#### Build Configuration:
+```bash
+cd /opt/xf-shopee/frontend/web-mobile
+cp .env.example .env.production
+# Edit .env.production
+nano .env.production
+```
+
+**Environment Variables:**
+```env
+VITE_BASE_PATH=/xfbh/mobile/
+VITE_API_BASE_URL=/xfbh/api
+VITE_APP_TITLE=XF Shopee Mobile
+VITE_DEBUG=false
+```
+
+#### Build Command:
+```bash
+npm ci
+VITE_USER_NODE_ENV=production npm run build
+# Output: /opt/xf-shopee/frontend/web-mobile/dist/
+```
+
+#### Nginx Configuration Update:
+Update the existing `/xfbh/mobile/` location block in Nginx config:
+```nginx
+# Mobile H5 application (web-mobile)
+location /xfbh/mobile/ {
+    alias /opt/xf-shopee/frontend/web-mobile/dist/;
+    index index.html;
+    try_files $uri $uri/ /xfbh/mobile/index.html;
+    
+    # Cache static assets
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
+### 2. Native Mobile Applications
+
+#### Android Application:
+- **Location**: `mobile/android/`
+- **Build**: Use Android Studio or Gradle to build APK/AAB
+- **Configuration**: Update `WebViewManager.kt` with production base URL
+- **Asset Integration**: Copy H5 build output to `android/app/src/main/assets/web-mobile/`
+
+#### iOS Application:
+- **Location**: `mobile/ios/` (Native Swift implementation)
+- **Build**: Use Xcode to build IPA
+- **Configuration**: Update `WebViewManager.swift` with production base URL
+- **Asset Integration**: Add H5 build output to Xcode project resources
+
+### 3. App Store Deployment
+
+#### Google Play Store:
+1. Generate signed AAB/APK with production keystore
+2. Create store listing with screenshots and description
+3. Configure internal testing track
+4. Submit for review
+
+#### Apple App Store:
+1. Create App ID and provisioning profiles
+2. Archive build in Xcode with distribution certificate
+3. Upload via Transporter or Xcode Organizer
+4. Submit for App Review
+
+### 4. OTA Updates (Optional)
+
+For H5 content updates without app store submission:
+- **Android**: Serve latest H5 from CDN, fallback to bundled assets
+- **iOS**: Use server-controlled version checks and CDN updates
+- **Version Management**: Maintain mapping between native app version and H5 version
+
+### 5. Monitoring and Analytics
+
+#### Key Metrics:
+- Mobile app crash rates (Firebase Crashlytics / App Center)
+- User engagement and session duration
+- API response times from mobile devices
+- H5 loading performance in WebView
+
+#### Configuration:
+```bash
+# Android: Add Firebase configuration
+# iOS: Add Apple App Store Connect configuration
+# Backend: Log mobile-specific user agents and API patterns
+```
+
 ---
 
 **Last Updated**: April 2026  
-**Version**: 1.0.0  
+**Version**: 1.1.0 (Added mobile deployment)  
 **Maintainer**: XF Shopee DevOps Team  
 **Support**: Contact system administrator for deployment assistance
