@@ -4,12 +4,12 @@
  * Provides common WebView functionality with bridge communication.
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { forwardRef, useRef, useEffect, useState, useImperativeHandle } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import WebView from 'react-native-webview';
 import Bridge from '../native/BridgeModule';
 
-const BaseWebView = ({
+const BaseWebView = forwardRef(({
   source,
   onMessage,
   onLoadStart,
@@ -18,10 +18,25 @@ const BaseWebView = ({
   injectedJavaScript,
   style,
   ...props
-}) => {
+}, ref) => {
   const webViewRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  useImperativeHandle(ref, () => ({
+    sendMessage: (message) => {
+      if (webViewRef.current) {
+        const messageStr = JSON.stringify(message);
+        webViewRef.current.injectJavaScript(`
+          (function() {
+            window.dispatchEvent(new MessageEvent('message', {
+              data: ${messageStr}
+            }));
+          })();
+        `);
+      }
+    },
+  }));
 
   // Handle loading states
   const handleLoadStart = () => {
@@ -50,20 +65,6 @@ const BaseWebView = ({
       onMessage?.(message);
     } catch (error) {
       console.error('Failed to parse WebView message:', error);
-    }
-  };
-
-  // Send message to WebView
-  const sendMessage = (message) => {
-    if (webViewRef.current) {
-      const messageStr = JSON.stringify(message);
-      webViewRef.current.injectJavaScript(`
-        (function() {
-          window.dispatchEvent(new MessageEvent('message', {
-            data: ${messageStr}
-          }));
-        })();
-      `);
     }
   };
 
@@ -180,7 +181,7 @@ const BaseWebView = ({
       )}
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

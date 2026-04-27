@@ -16,38 +16,21 @@ import {
   EyeOutline,
 } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
-import { authApi } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const onFinish = async (values) => {
-    try {
-      setLoading(true);
-      const response = await authApi.login(values.username, values.password);
-      
-      // 保存token和用户信息
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      
-      Toast.show({
-        content: '登录成功',
-        icon: 'success',
-        duration: 1000,
-        afterClose: () => {
-          navigate('/dashboard');
-        },
-      });
-    } catch (error) {
-      console.error('登录失败:', error);
-      Toast.show({
-        content: error.message || '登录失败，请检查用户名和密码',
-        icon: 'fail',
-      });
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const result = await login(values.username, values.password);
+    setLoading(false);
+
+    if (result.success) {
+      navigate('/dashboard');
     }
   };
 

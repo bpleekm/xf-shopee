@@ -4,28 +4,27 @@
  * Provides SKU (product) management functionality.
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import BaseWebView from './BaseWebView';
 import { WEB_ADMIN_URLS } from '../services/config';
 import Bridge from '../native/BridgeModule';
 
 const SKUWebView = (props) => {
+  const webViewRef = useRef(null);
+
   const handleMessage = async (message) => {
     console.log('SKU WebView message:', message);
     
     try {
       switch (message.type) {
         case 'SCAN_BARCODE':
-          // Handle barcode scanning request
           const scanResult = await Bridge.scanBarcode();
-          
-          // Send result back to WebView
           if (webViewRef.current) {
-            webViewRef.current.postMessage(JSON.stringify({
+            webViewRef.current.sendMessage({
               type: 'SCAN_RESULT',
               data: scanResult,
               callbackId: message.data.callbackId,
-            }));
+            });
           }
           break;
           
@@ -112,17 +111,10 @@ const SKUWebView = (props) => {
     window.dispatchEvent(new Event('skuAPIReady'));
     console.log('SKU API injected');
   `;
-
-  // Note: webViewRef is not defined in this component yet.
-  // We need to create a ref and pass to BaseWebView.
-  // For simplicity, we'll handle scanning differently.
-  // Let's refactor: we'll use the BaseWebView's built-in message handling.
-  // Actually, BaseWebView already handles messages via onMessage prop.
-  // We'll need to send response back to WebView.
-  // We'll implement response handling later.
   
   return (
     <BaseWebView
+      ref={webViewRef}
       source={{ uri: `${WEB_ADMIN_URLS.BASE}${WEB_ADMIN_URLS.SKU_MANAGEMENT}` }}
       onMessage={handleMessage}
       injectedJavaScript={injectedJavaScript}

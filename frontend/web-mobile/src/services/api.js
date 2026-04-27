@@ -71,13 +71,13 @@ export const healthApi = {
 // 用户认证API
 export const authApi = {
   login: (username, password) => 
-    api.post('/v1/auth/login', { username, password }),
+    api.post('/v1/users/login', { username, password }),
   
   register: (userData) => 
-    api.post('/v1/auth/register', userData),
+    api.post('/v1/users/register', userData),
   
   getCurrentUser: () => 
-    api.get('/v1/users/profile'),
+    api.get('/v1/users/me'),
   
   logout: () => {
     localStorage.removeItem('token');
@@ -145,25 +145,25 @@ export const productApi = {
 // 购物车API
 export const cartApi = {
   getCart: () => 
-    api.get('/v1/cart'),
+    api.get('/v1/carts'),
   
   addItem: (productId, quantity) => 
-    api.post('/v1/cart/items', { productId, quantity }),
+    api.post('/v1/carts/items', { productId, quantity }),
   
   updateItem: (itemId, quantity) => 
-    api.put(`/v1/cart/items/${itemId}`, { quantity }),
+    api.put(`/v1/carts/items/${itemId}`, { quantity }),
   
   removeItem: (itemId) => 
-    api.delete(`/v1/cart/items/${itemId}`),
+    api.delete(`/v1/carts/items/${itemId}`),
   
   clearCart: () => 
-    api.delete('/v1/cart'),
+    api.delete('/v1/carts'),
   
   checkout: (checkoutData) => 
-    api.post('/v1/cart/checkout', checkoutData),
+    api.post('/v1/carts/checkout', checkoutData),
   
   mergeCart: (sessionId) =>
-    api.post('/v1/cart/merge', { sessionId }),
+    api.post('/v1/carts/merge', { sessionId }),
 };
 
 // 订单管理API

@@ -17,34 +17,21 @@ import {
   LeftOutline,
 } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
-import { authApi } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
   const onFinish = async (values) => {
-    try {
-      setLoading(true);
-      await authApi.register(values);
-      
-      Toast.show({
-        content: '注册成功！请登录',
-        icon: 'success',
-        duration: 1500,
-        afterClose: () => {
-          navigate('/login');
-        },
-      });
-    } catch (error) {
-      console.error('注册失败:', error);
-      Toast.show({
-        content: error.message || '注册失败，请重试',
-        icon: 'fail',
-      });
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const result = await register(values);
+    setLoading(false);
+
+    if (result.success) {
+      navigate('/dashboard');
     }
   };
 

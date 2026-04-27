@@ -29,10 +29,12 @@ import {
   QuestionCircleOutline,
 } from 'antd-mobile-icons';
 import { useNavigate } from 'react-router-dom';
-import { authApi, userApi } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { userApi } from '../services/api';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const { user: authUser, logout: authLogout } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editVisible, setEditVisible] = useState(false);
@@ -46,8 +48,12 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    fetchUserProfile();
-    // 加载设置
+    if (authUser) {
+      setUser(authUser);
+      setLoading(false);
+    } else {
+      fetchUserProfile();
+    }
     const savedSettings = localStorage.getItem('userSettings');
     if (savedSettings) {
       try {
@@ -56,22 +62,16 @@ const ProfilePage = () => {
         console.error('加载设置失败:', error);
       }
     }
-  }, []);
+  }, [authUser]);
 
   const fetchUserProfile = async () => {
-    try {
-      setLoading(true);
-      const userData = await authApi.getCurrentUser();
-      setUser(userData);
-    } catch (error) {
-      console.error('获取用户信息失败:', error);
-      // 如果未登录，跳转到登录页
-      if (error.response?.status === 401) {
-        navigate('/login');
-      }
-    } finally {
+    setLoading(true);
+    if (authUser) {
+      setUser(authUser);
       setLoading(false);
+      return;
     }
+    setLoading(false);
   };
 
   const handleLogout = () => {
@@ -80,11 +80,7 @@ const ProfilePage = () => {
       confirmText: '退出',
       cancelText: '取消',
       onConfirm: () => {
-        authApi.logout();
-        Toast.show({
-          content: '已退出登录',
-          icon: 'success',
-        });
+        authLogout();
         navigate('/login');
       },
     });

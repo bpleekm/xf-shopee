@@ -1,5 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-// import { authApi } from '../services/api';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { authApi } from '../services/api';
 import { Toast } from 'antd-mobile';
 
 const AuthContext = createContext();
@@ -19,79 +19,68 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // 初始化：检查本地存储的token和用户信息
-  useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('token');
-      const savedUser = localStorage.getItem('user');
-      
-      if (token && savedUser) {
-        try {
-          // 验证token有效性
-          const userData = JSON.parse(savedUser);
-          setUser(userData);
-          setIsAuthenticated(true);
-          
-          // 获取用户权限
-          await loadPermissions();
-        } catch (error) {
-          console.error('初始化认证失败:', error);
-          logout();
-        }
-      }
-      setLoading(false);
-    };
-
-    initAuth();
+  const doLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    setPermissions([]);
+    setRoles([]);
+    setIsAuthenticated(false);
   }, []);
 
-  // 加载用户权限
-  const loadPermissions = async () => {
+  const loadPermissions = useCallback(async () => {
     try {
-      // TODO: 实现权限加载
-      // const result = await authApi.getPermissions();
-      // setPermissions(result.permissions || []);
-      // setRoles(result.roles || []);
-      setPermissions([]);
-      setRoles([]);
+      const result = await authApi.getPermissions();
+      setPermissions(result.permissions || []);
+      setRoles(result.roles || []);
     } catch (error) {
       console.error('加载权限失败:', error);
     }
-  };
+  }, []);
 
-  // 登录
+  const initAuth = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const userData = await authApi.getCurrentUser();
+      setUser(userData.user);
+      setIsAuthenticated(true);
+      localStorage.setItem('user', JSON.stringify(userData.user));
+      await loadPermissions();
+    } catch (error) {
+      console.error('Token无效，请重新登录:', error);
+      doLogout();
+    } finally {
+      setLoading(false);
+    }
+  }, [doLogout, loadPermissions]);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
   const login = async (username, password) => {
     try {
       setLoading(true);
-      // TODO: 实现API调用
-      // const response = await authApi.login(username, password);
-      
-      // 模拟成功响应
-      const mockUser = {
-        id: 1,
-        username,
-        fullName: '测试用户',
-        email: `${username}@example.com`,
-        role: 'staff'
-      };
-      const mockToken = 'mock.jwt.token';
-      
-      // 保存token和用户信息
-      localStorage.setItem('token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      // 更新状态
-      setUser(mockUser);
+      const result = await authApi.login(username, password);
+
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+
+      setUser(result.user);
       setIsAuthenticated(true);
-      
-      // 加载权限
+
       await loadPermissions();
-      
+
       Toast.show({
         icon: 'success',
         content: '登录成功',
       });
-      return { success: true, data: mockUser };
+      return { success: true, data: result.user };
     } catch (error) {
       const errorMsg = error.message || '登录失败，请检查用户名和密码';
       Toast.show({
@@ -104,34 +93,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 注册
   const register = async (userData) => {
     try {
       setLoading(true);
-      // TODO: 实现API调用
-      // const response = await authApi.register(userData);
-      
-      const mockUser = {
-        id: Date.now(),
-        username: userData.username,
-        fullName: userData.fullName || userData.username,
-        email: userData.email,
-        role: 'user'
-      };
-      const mockToken = 'mock.jwt.token';
-      
-      localStorage.setItem('token', mockToken);
-      localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      setUser(mockUser);
+      const result = await authApi.register(userData);
+
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user));
+
+      setUser(result.user);
       setIsAuthenticated(true);
       await loadPermissions();
-      
+
       Toast.show({
         icon: 'success',
         content: '注册成功',
       });
-      return { success: true, data: mockUser };
+      return { success: true, data: result.user };
     } catch (error) {
       const errorMsg = error.message || '注册失败';
       Toast.show({
@@ -144,55 +122,42 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 注销
   const logout = () => {
-    // authApi.logout();
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setPermissions([]);
-    setRoles([]);
-    setIsAuthenticated(false);
+    authApi.logout();
+    doLogout();
     Toast.show({
       icon: 'success',
       content: '已退出登录',
     });
   };
 
-  // 检查权限
   const hasPermission = (permissionCode) => {
     if (!permissions || permissions.length === 0) return false;
     return permissions.some(perm => perm.code === permissionCode);
   };
 
-  // 检查角色
   const hasRole = (roleName) => {
     if (!roles || roles.length === 0) return false;
     return roles.some(role => role.name === roleName);
   };
 
-  // 检查多个权限中的任意一个
   const hasAnyPermission = (permissionCodes) => {
     if (!permissions || permissions.length === 0) return false;
     return permissionCodes.some(code => hasPermission(code));
   };
 
-  // 检查多个角色中的任意一个
   const hasAnyRole = (roleNames) => {
     if (!roles || roles.length === 0) return false;
     return roleNames.some(name => hasRole(name));
   };
 
-  // 刷新用户信息
   const refreshUser = async () => {
     try {
-      // TODO: 实现API调用
-      // const response = await authApi.getCurrentUser();
-      // const userData = response.data;
-      // localStorage.setItem('user', JSON.stringify(userData));
-      // setUser(userData);
-      // return userData;
-      return user;
+      const result = await authApi.getCurrentUser();
+      const userData = result.user;
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      return userData;
     } catch (error) {
       console.error('刷新用户信息失败:', error);
       return null;
