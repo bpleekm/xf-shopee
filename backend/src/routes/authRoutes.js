@@ -3,6 +3,8 @@ const router = express.Router();
 const { authenticate, authorize } = require('../middleware/authMiddleware');
 const AuthController = require('../controllers/authController');
 
+router.post('/refresh', AuthController.refresh);
+router.post('/logout', authenticate, AuthController.logout);
 router.get('/permissions', authenticate, AuthController.getUserPermissions);
 router.post('/check', authenticate, AuthController.checkPermission);
 router.get('/resources', authenticate, authorize('admin'), AuthController.getResources);

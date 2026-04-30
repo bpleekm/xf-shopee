@@ -1,6 +1,7 @@
 const Role = require('../models/Role');
 const Permission = require('../models/Permission');
 const User = require('../models/User');
+const AuthService = require('../utils/auth');
 const { ApiResponse, asyncHandler } = require('../utils/response');
 
 class AuthController {
@@ -359,6 +360,65 @@ class AuthController {
 
     return res.status(200).json(
       ApiResponse.success({ removedCount, userId: parseInt(userId) }, `成功移除 ${removedCount} 个角色`).toJSON()
+    );
+  });
+
+  /**
+   * 刷新令牌
+   */
+  static refresh = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json(ApiResponse.error('刷新令牌是必填项').toJSON());
+    }
+
+    if (AuthService.isRefreshTokenRevoked(refreshToken)) {
+      return res.status(401).json(ApiResponse.unauthorized('刷新令牌已被吊销').toJSON());
+    }
+
+    let decoded;
+    try {
+      decoded = AuthService.verifyRefreshToken(refreshToken);
+    } catch (error) {
+      return res.status(401).json(ApiResponse.unauthorized('刷新令牌无效或已过期').toJSON());
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json(ApiResponse.notFound('用户不存在').toJSON());
+    }
+
+    if (user.status !== 'active') {
+      return res.status(403).json(ApiResponse.forbidden('账户已被禁用').toJSON());
+    }
+
+    const payload = { id: user.id, username: user.username, role: user.role, email: user.email };
+    const newToken = AuthService.generateToken(payload);
+    const newRefreshToken = AuthService.generateRefreshToken(payload);
+
+    AuthService.revokeRefreshToken(refreshToken);
+
+    return res.status(200).json(
+      ApiResponse.success(
+        { token: newToken, refreshToken: newRefreshToken },
+        '令牌刷新成功'
+      ).toJSON()
+    );
+  });
+
+  /**
+   * 注销（吊销刷新令牌）
+   */
+  static logout = asyncHandler(async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+      AuthService.revokeRefreshToken(refreshToken);
+    }
+
+    return res.status(200).json(
+      ApiResponse.success(null, '注销成功').toJSON()
     );
   });
 }

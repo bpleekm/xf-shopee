@@ -1,11 +1,28 @@
 import axios from 'axios';
 
-// API基础URL配置
-// 开发环境: http://localhost:3000/api
-// 生产环境: /xfbh/api (通过Nginx代理)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
-// 创建axios实例
+// 专门用于刷新令牌的axios实例（避免拦截器循环）
+const refreshApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+let isRefreshing = false;
+let failedQueue = [];
+
+function processQueue(error, token = null) {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+}
+
+// 创建主axios实例
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -25,36 +42,72 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 响应拦截器 - 处理错误
+// 响应拦截器 - 处理错误 + 自动刷新token
 api.interceptors.response.use(
   (response) => {
     const data = response.data;
-    // 处理统一API响应格式
     if (data && typeof data === 'object') {
       if (data.success === true) {
-        // 返回实际数据
         return data.data;
       } else {
-        // 业务逻辑错误，抛出错误信息
         const error = new Error(data.message || '请求失败');
         error.code = data.statusCode || 400;
         throw error;
       }
     }
-    // 如果响应格式不符合预期，直接返回
     return data;
   },
-  (error) => {
-    if (error.response?.status === 401) {
-      // 未授权，清除token并跳转到登录页
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // 触发自定义事件，让App组件处理跳转
-      window.dispatchEvent(new CustomEvent('unauthorized', { 
-        detail: { status: 401 }
-      }));
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('refreshToken');
+        window.dispatchEvent(new CustomEvent('unauthorized', { detail: { status: 401 } }));
+        const errorData = error.response?.data;
+        return Promise.reject(new Error(
+          (errorData && errorData.message) || '登录已过期，请重新登录'
+        ));
+      }
+
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        }).catch(err => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const res = await refreshApi.post('/v1/auth/refresh', { refreshToken });
+        const { token, refreshToken: newRefreshToken } = res.data.data;
+
+        localStorage.setItem('token', token);
+        localStorage.setItem('refreshToken', newRefreshToken);
+
+        processQueue(null, token);
+
+        originalRequest.headers.Authorization = `Bearer ${token}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('refreshToken');
+        window.dispatchEvent(new CustomEvent('unauthorized', { detail: { status: 401 } }));
+        return Promise.reject(new Error('登录已过期，请重新登录'));
+      } finally {
+        isRefreshing = false;
+      }
     }
-    // 返回统一的错误格式
+
     const errorData = error.response?.data;
     if (errorData && typeof errorData === 'object' && errorData.message) {
       return Promise.reject(new Error(errorData.message));
@@ -72,21 +125,28 @@ export const healthApi = {
 export const authApi = {
   login: (username, password) => 
     api.post('/v1/users/login', { username, password }),
-  
+
   register: (userData) => 
     api.post('/v1/users/register', userData),
-  
+
   getCurrentUser: () => 
     api.get('/v1/users/me'),
-  
-  logout: () => {
+
+  refreshToken: (refreshToken) =>
+    refreshApi.post('/v1/auth/refresh', { refreshToken }),
+
+  logout: (refreshToken) => {
+    if (refreshToken) {
+      api.post('/v1/auth/logout', { refreshToken }).catch(() => {});
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
   },
-  
+
   getPermissions: () =>
     api.get('/v1/auth/permissions'),
-  
+
   checkPermissions: (permissions) =>
     api.post('/v1/auth/check', { permissions }),
 };

@@ -2,23 +2,22 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 class AuthService {
+  // 内存中的刷新令牌吊销列表（生产环境建议使用Redis）
+  static #revokedRefreshTokens = new Set();
+
   /**
-   * 生成JWT令牌
-   * @param {Object} payload - 载荷数据
-   * @returns {string} JWT令牌
+   * 生成访问令牌（短时效）
    */
   static generateToken(payload) {
     return jwt.sign(
       payload,
       process.env.JWT_SECRET || 'your_jwt_secret_key_here_change_in_production',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
     );
   }
 
   /**
-   * 验证JWT令牌
-   * @param {string} token - JWT令牌
-   * @returns {Object} 解码后的载荷
+   * 验证访问令牌
    */
   static verifyToken(token) {
     try {
@@ -32,9 +31,46 @@ class AuthService {
   }
 
   /**
+   * 生成刷新令牌（长时效）
+   */
+  static generateRefreshToken(payload) {
+    return jwt.sign(
+      payload,
+      process.env.REFRESH_JWT_SECRET || 'your_refresh_jwt_secret_key_here',
+      { expiresIn: process.env.REFRESH_JWT_EXPIRES_IN || '7d' }
+    );
+  }
+
+  /**
+   * 验证刷新令牌
+   */
+  static verifyRefreshToken(token) {
+    try {
+      return jwt.verify(
+        token,
+        process.env.REFRESH_JWT_SECRET || 'your_refresh_jwt_secret_key_here'
+      );
+    } catch (error) {
+      throw new Error('Invalid refresh token');
+    }
+  }
+
+  /**
+   * 吊销刷新令牌
+   */
+  static revokeRefreshToken(token) {
+    AuthService.#revokedRefreshTokens.add(token);
+  }
+
+  /**
+   * 检查刷新令牌是否被吊销
+   */
+  static isRefreshTokenRevoked(token) {
+    return AuthService.#revokedRefreshTokens.has(token);
+  }
+
+  /**
    * 密码加密
-   * @param {string} password - 明文密码
-   * @returns {Promise<string>} 哈希密码
    */
   static async hashPassword(password) {
     const saltRounds = 10;
@@ -43,9 +79,6 @@ class AuthService {
 
   /**
    * 验证密码
-   * @param {string} password - 明文密码
-   * @param {string} hash - 哈希密码
-   * @returns {Promise<boolean>} 是否匹配
    */
   static async verifyPassword(password, hash) {
     return await bcrypt.compare(password, hash);
@@ -53,8 +86,6 @@ class AuthService {
 
   /**
    * 从请求中提取令牌
-   * @param {Object} req - Express请求对象
-   * @returns {string|null} 令牌或null
    */
   static extractToken(req) {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
@@ -64,9 +95,7 @@ class AuthService {
   }
 
   /**
-   * 生成随机字符串（用于会话ID等）
-   * @param {number} length - 长度
-   * @returns {string} 随机字符串
+   * 生成随机字符串
    */
   static generateRandomString(length = 32) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

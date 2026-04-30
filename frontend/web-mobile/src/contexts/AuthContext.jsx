@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
   const doLogout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('refreshToken');
     setUser(null);
     setPermissions([]);
     setRoles([]);
@@ -69,6 +70,7 @@ export const AuthProvider = ({ children }) => {
       const result = await authApi.login(username, password);
 
       localStorage.setItem('token', result.token);
+      localStorage.setItem('refreshToken', result.refreshToken);
       localStorage.setItem('user', JSON.stringify(result.user));
 
       setUser(result.user);
@@ -99,6 +101,7 @@ export const AuthProvider = ({ children }) => {
       const result = await authApi.register(userData);
 
       localStorage.setItem('token', result.token);
+      localStorage.setItem('refreshToken', result.refreshToken);
       localStorage.setItem('user', JSON.stringify(result.user));
 
       setUser(result.user);
@@ -123,7 +126,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    authApi.logout();
+    const refreshToken = localStorage.getItem('refreshToken');
+    authApi.logout(refreshToken);
     doLogout();
     Toast.show({
       icon: 'success',

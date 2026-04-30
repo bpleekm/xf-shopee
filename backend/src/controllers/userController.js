@@ -68,13 +68,9 @@ class UserController {
       status: 'active'
     });
 
-    // 生成JWT令牌
-    const token = AuthService.generateToken({
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      email: user.email
-    });
+    const payload = { id: user.id, username: user.username, role: user.role, email: user.email };
+    const token = AuthService.generateToken(payload);
+    const refreshToken = AuthService.generateRefreshToken(payload);
 
     return res.status(201).json(
       ApiResponse.success(
@@ -89,7 +85,8 @@ class UserController {
             status: user.status,
             created_at: user.created_at
           },
-          token
+          token,
+          refreshToken
         },
         '用户注册成功'
       ).toJSON()
@@ -111,33 +108,25 @@ class UserController {
 
     const { username, password } = req.body;
 
-    // 查找用户
     const user = await User.findByUsername(username);
     if (!user) {
       return res.status(401).json(ApiResponse.unauthorized('用户名或密码错误').toJSON());
     }
 
-    // 验证密码
     const isValidPassword = await User.verifyPassword(password, user.password_hash);
     if (!isValidPassword) {
       return res.status(401).json(ApiResponse.unauthorized('用户名或密码错误').toJSON());
     }
 
-    // 检查用户状态
     if (user.status !== 'active') {
       return res.status(403).json(ApiResponse.forbidden('账户已被禁用').toJSON());
     }
 
-    // 更新最后登录时间
     await User.updateLastLogin(user.id);
 
-    // 生成JWT令牌
-    const token = AuthService.generateToken({
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      email: user.email
-    });
+    const payload = { id: user.id, username: user.username, role: user.role, email: user.email };
+    const token = AuthService.generateToken(payload);
+    const refreshToken = AuthService.generateRefreshToken(payload);
 
     return res.status(200).json(
       ApiResponse.success(
@@ -152,7 +141,8 @@ class UserController {
             status: user.status,
             last_login_at: user.last_login_at
           },
-          token
+          token,
+          refreshToken
         },
         '登录成功'
       ).toJSON()
